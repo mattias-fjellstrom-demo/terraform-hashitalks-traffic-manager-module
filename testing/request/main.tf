@@ -18,7 +18,7 @@ variable "url" {
 }
 
 resource "time_sleep" "sleep" {
-  create_duration = "30s"
+  create_duration = "60s"
 }
 
 data "http" "endpoint" {
