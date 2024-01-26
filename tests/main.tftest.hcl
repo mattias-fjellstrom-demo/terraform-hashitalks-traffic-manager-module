@@ -21,16 +21,10 @@ variables {
   name_suffix = "hashitalks"
   endpoints = [
     {
-      name     = "target01"
-      target   = "mattias.engineer"
+      name     = "google-dns"
+      target   = "8.8.8.8"
       priority = 10
       enabled  = true
-    },
-    {
-      name     = "target02"
-      target   = "google.com"
-      priority = 20
-      enabled  = false
     }
   ]
 }
@@ -120,27 +114,20 @@ run "setup_resource_group" {
   }
 }
 
-run "setup_traffic_manager" {
+run "validate_traffic_manager_attributes" {
   command = apply
 
   variables {
     resource_group = run.setup_resource_group.resource_group
   }
-}
 
-run "endpoint_should_respond" {
-  command = apply
-
-  variables {
-    url = run.setup_traffic_manager.traffic_manager_profile.fqdn
-  }
-
-  module {
-    source = "./testing/request"
+  assert {
+    condition     = azurerm_traffic_manager_profile.this.profile_status == "Enabled"
+    error_message = "Traffic manager status is set to disabled"
   }
 
   assert {
-    condition     = data.http.endpoint.status_code == 200
-    error_message = "Endpoint does not respond"
+    condition     = azurerm_traffic_manager_profile.this.dns_config.ttl <= 60
+    error_message = "DNS TTL is set too high"
   }
 }

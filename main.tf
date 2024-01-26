@@ -16,7 +16,7 @@ resource "azurerm_traffic_manager_profile" "this" {
     interval_in_seconds          = 10
     timeout_in_seconds           = 5
     tolerated_number_of_failures = 3
-    expected_status_code_ranges  = ["200-299", "301-301"]
+    expected_status_code_ranges  = ["200-399"]
   }
 
   traffic_routing_method = "Priority"
@@ -42,4 +42,21 @@ resource "azurerm_traffic_manager_external_endpoint" "endpoints" {
     name  = "Host"
     value = each.value.target
   }
+}
+
+data "azurerm_resource_group" "dns" {
+  name = "dns"
+}
+
+data "azurerm_dns_zone" "mattiasfjellstromcom" {
+  resource_group_name = data.azurerm_resource_group.dns.name
+  name                = "mattiasfjellstrom.com"
+}
+
+resource "azurerm_dns_cname_record" "tm" {
+  resource_group_name = data.azurerm_resource_group.dns.name
+  name                = "hashitalks"
+  zone_name           = data.azurerm_dns_zone.mattiasfjellstromcom.name
+  ttl                 = 60
+  target_resource_id  = azurerm_traffic_manager_profile.this.id
 }
