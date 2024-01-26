@@ -127,7 +127,7 @@ run "validate_traffic_manager_attributes" {
   }
 
   assert {
-    condition     = azurerm_traffic_manager_profile.this.dns_config.ttl <= 60
+    condition     = azurerm_traffic_manager_profile.this.dns_config[0].ttl <= 60
     error_message = "DNS TTL is set too high"
   }
 }
